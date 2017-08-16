@@ -13,11 +13,11 @@ from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
 class CECBRProfile(TimeStampedModel):
     user = models.OneToOneField(settings.AUTH_USER_MODEL)
-    _cecbr_salt = models.IntegerField(blank=True)
     _cecbr_pwd_set = models.BooleanField(default=False)
     cecbr_uname = models.CharField(max_length=128, blank=True)
     cecbr_password = models.CharField(max_length=256, blank=True)
-    last_album_view = models.DateTimeField(blank=True)
+    last_album_view = models.DateTimeField(blank=True, null=True)
+    _cecbr_salt = models.BinaryField(blank=True)
 
     def handle_pwd(self, raw_password):
         b_password = str.encode(raw_password)
