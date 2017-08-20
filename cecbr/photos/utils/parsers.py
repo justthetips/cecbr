@@ -28,7 +28,7 @@ class ParsedAlbum(object):
 
 
 def get_logged_on_page(username: str, password: str) -> Page:
-    page = Page(user_name=username, password=password)
+    page = Page(username, password)
     page.logon()
     return page
 

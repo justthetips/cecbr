@@ -287,4 +287,4 @@ ADMIN_URL = r'^admin/'
 
 # Your common stuff: Below this line define 3rd party library settings
 # ------------------------------------------------------------------------------
-PHANTOM_PATH = env('PHANTOM_PATH', default=ROOT_DIR.path('phantonjs.exe'))
+PHANTOM_PATH = env('PHANTOM_PATH', default=ROOT_DIR.path('phantomjs.exe'))

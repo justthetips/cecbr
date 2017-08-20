@@ -20,35 +20,33 @@ logger = logging.getLogger(__name__)
 
 @attr.s
 class Page(object):
-    logon_page = attr.ib(default=LOGON_URL, validator=attr.validators.instance_of(str))
-    initialized = False
-    logged_in = False
-    driver_path = attr.ib(default=settings.PHANTOM_PATH, validator=attr.validators.instance_of(str))
-
-    def __init__(self, user_name: str, password: str):
-        self._user_name = user_name
-        self._password = password
-        self._driver = None
+    _user_name = attr.ib(validator=attr.validators.instance_of(str))
+    _password = attr.ib(validator=attr.validators.instance_of(str))
+    _logon_page = attr.ib(default=LOGON_URL, validator=attr.validators.instance_of(str))
+    _driver_path = attr.ib(default=str(settings.PHANTOM_PATH), validator=attr.validators.instance_of(str))
+    _initialized = attr.ib(default=False, validator=attr.validators.instance_of(bool))
+    _logged_in = attr.ib(default=False, validator=attr.validators.instance_of(bool))
+    _driver = None
 
     def driver(self, check_initialized: bool = True) -> webdriver:
         if check_initialized:
-            if not self.initialized:
+            if not self._initialized:
                 self.initialize()
-            if not self.logged_in:
+            if not self._logged_in:
                 self.logon()
 
         return self._driver
 
     def initialize(self):
-        self._driver = webdriver.PhantomJS(executable_path=self.driver_path, service_log_path=os.path.devnull)
-        self.initialized = True
+        self._driver = webdriver.PhantomJS(executable_path=self._driver_path, service_log_path=os.path.devnull)
+        self._initialized = True
 
     def logon(self):
-        if not self.initialized:
+        if not self._initialized:
             self.initialize()
 
-        logger.info("Attempting to log in to {}".format(self.logon_page))
-        self._driver.get(self.logon_page)
+        logger.info("Attempting to log in to {}".format(self._logon_page))
+        self._driver.get(self._logon_page)
 
         # now handle the form
         user_tb = self._driver.find_element_by_name('txtEmail')
@@ -61,16 +59,16 @@ class Page(object):
         submit_bttn = self._driver.find_element_by_id('btnLogin')
         submit_bttn.click()
         time.sleep(7)
-        self.logged_in = True
+        self._logged_in = True
 
     def close(self):
         if self._driver is not None:
             self._driver.close()
-        self.initialized = False
-        self.logged_in = False
+        self._initialized = False
+        self._logged_in = False
 
     def retrieve_page(self, url: str) -> webdriver:
-        if not self.logged_in:
+        if not self._logged_in:
             self.logon()
         self._driver.get(url)
         return self._driver
@@ -79,14 +77,16 @@ class Page(object):
         return self.retrieve_page(url).page_source
 
 
+
 class CampMinderPhotoFinder(metaclass=ABCMeta):
-    array_search_string = attr.ib(default='AlbumArray', validator=attr.validators.instance_of(str))
-    front_clean_chars = attr.ib(default=1, validator=attr.validators.instance_of(int))
-    main_dict_key = attr.ib(default='AlbumID', validator=attr.validators.instance_of(str))
 
     def __init__(self, logon_page: Page, url: str, *args: str, **kwargs: str) -> None:
         self._logon_page = logon_page
         self._url = url
+        self._array_search_string = kwargs.pop('array_search_string','AlbumArray')
+        self._front_clean_chars = kwargs.pop('front_clean_chars',1)
+        self._main_dict_key = kwargs.pop('main_dict_key','AlbumID')
+
 
     @abstractmethod
     def prettify(self, string: str) -> str:
@@ -94,7 +94,7 @@ class CampMinderPhotoFinder(metaclass=ABCMeta):
 
     def parse(self) -> Dict[str, dict]:
 
-        if not self._logon_page.logged_in:
+        if not self._logon_page._logged_in:
             self._logon_page.logon()
 
         dicts = {}
@@ -104,7 +104,7 @@ class CampMinderPhotoFinder(metaclass=ABCMeta):
         soup = BeautifulSoup(page_html, 'html.parser')
         scripts = soup.find_all(script_with_no_src)
         for script in scripts:
-            if self.array_search_string in script.text:
+            if self._array_search_string in script.text:
                 dicts = self.read_pretified_to_dict(self.build_album_array_string(script.text))
 
         return dicts
@@ -124,7 +124,7 @@ class CampMinderPhotoFinder(metaclass=ABCMeta):
             if len(row) != 1:
                 local_dict = {}
                 decoded = row.replace('\\', '')
-                cleaned = decoded[self.front_clean_chars:(len(decoded) - 1)]
+                cleaned = decoded[self._front_clean_chars:(len(decoded) - 1)]
                 tokens = cleaned.split(',')
                 for token in tokens:
                     try:
@@ -132,15 +132,15 @@ class CampMinderPhotoFinder(metaclass=ABCMeta):
                         local_dict[key] = value
                     except ValueError:
                         logger.debug("token %s does not parse correctly" % token)
-                dicts[local_dict[self.main_dict_key]] = local_dict
+                dicts[local_dict[self._main_dict_key]] = local_dict
         return dicts
 
     def build_album_array_string(self, string: str) -> str:
         logger.info("Attepmting to extract javascript album")
-        start_album_array = string.find(self.array_search_string)
+        start_album_array = string.find(self._array_search_string)
         if start_album_array == -1:
-            raise ValueError("String does not contain {}".format(self.array_search_string))
-        start_album_array += len(self.array_search_string)
+            raise ValueError("String does not contain {}".format(self._array_search_string))
+        start_album_array += len(self._array_search_string)
         # find the opening '['
         pos = string.find('[', start_album_array)
         if pos == -1:
@@ -180,9 +180,9 @@ class IndexAlbumParser(CampMinderPhotoFinder):
 class FavoriteAlbumParser(CampMinderPhotoFinder):
     def __init__(self, logon_page: Page, url: str, *args: str, **kwargs: str) -> None:
         super().__init__(logon_page, url, *args, **kwargs)
-        self.array_search_string = kwargs.get('array_search_string', 'CurrentAlbum')
-        self.front_clean_chars = kwargs.get('front_clean_chars', 2)
-        self.main_dict_key = kwargs.get('main_dict_key', 'PhotoID')
+        self._array_search_string = kwargs.get('array_search_string', 'CurrentAlbum')
+        self._front_clean_chars = kwargs.get('front_clean_chars', 2)
+        self._main_dict_key = kwargs.get('main_dict_key', 'PhotoID')
 
     def prettify(self, string):
         pos = 0
