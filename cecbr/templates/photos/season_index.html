@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% load static i18n %}
+{% block title %}CECBR Albums{% endblock %}
+
+{% block content %}
+    <div class="jumbotron">
+        <div class="container">
+            <p><h1>{{ season }}</h1></p>
+        </div>
+    </div>
+
+    <h3>New Or Changed Albums</h3>
+
+    <div class="album text-muted">
+        <div class="container">
+            <div class="row">
+                {% for na in new_albums %}
+                    <div class="card">
+                        <a href="#">
+                            <img src="{{ na.cover_url }}" alt="{{ na.name }}" class="img-responsive">
+                        </a>
+                        <p>{{ na.name }} - {{ na.count }} Pictures</p>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <h3>Old Albums</h3>
+
+    <div class="album text-muted">
+        <div class="container">
+            <div class="row">
+                {% for oa in old_albums %}
+                   <div class="card">
+                        <a href="#">
+                            <img src="{{ oa.cover_url }}" alt="{{ oa.name }}" class="img-responsive">
+                        </a>
+                        <p>{{ oa.name }} - {{ oa.count }} Pictures</p>
+                    </div>
+                 {% endfor %}
+            </div>
+        </div>
+    </div>
+
+{% endblock content %}

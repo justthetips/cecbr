@@ -3,6 +3,7 @@ import os
 import uuid
 import logging
 import django.utils.timezone
+from django.db.models.query import QuerySet
 
 from cryptography.fernet import Fernet
 from cryptography.hazmat.backends import default_backend
@@ -14,6 +15,7 @@ from django.db import models
 
 from cecbr.core.models import TimeStampedModel
 from cecbr.photos.utils import parsers, cecbrsite
+from cecbr.photos.utils.cecbrsite import Page
 
 logger = logging.getLogger(__name__)
 
@@ -74,7 +76,14 @@ class Season(TimeStampedModel):
     def _get_album_count(self) -> int:
         return Album.objects.filter(season=self).count()
 
+    def _get_photo_count(self) -> int:
+        photo_count = 0
+        albums = Album.objects.filter(season=self)
+        for album in albums:
+            photo_count += album.count
+
     album_count = property(_get_album_count)
+    photo_count = property(_get_photo_count)
 
     def season_url(self, base_url: str) -> str:
         season_param = '='.join(['seasonID', self.season_name])
@@ -132,9 +141,10 @@ class Album(TimeStampedModel):
         full_url = '?'.join([base_url, '&'.join([season_param, album_param])])
         return full_url
 
-    def process_album(self, profile:CECBRProfile) -> None:
+    def process_album(self, profile:CECBRProfile, logon_page:Page = None) -> None:
         logger.info("Processing Album {} it has {} photos".format(self.album_name, self.count))
-        logon_page = parsers.get_logged_on_page(profile.cecbr_uname, profile.get_pwd())
+        if logon_page is None:
+            logon_page = parsers.get_logged_on_page(profile.cecbr_uname, profile.get_pwd())
         photos = parsers.get_album(logon_page,self.album_url(cecbrsite.ALBUM_URL))
         for photo in photos:
             if not Photo.objects.filter(photo_id=photo.id).exists():
@@ -144,6 +154,7 @@ class Album(TimeStampedModel):
         self.processed = True
         self.processed_date = django.utils.timezone.now()
         self.save()
+
 
 
     class Meta:

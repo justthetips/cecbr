@@ -32,7 +32,7 @@ class CECBRProfileAdmin(admin.ModelAdmin):
 @admin.register(Season)
 class SeasonAdmin(admin.ModelAdmin):
     model = Season
-    list_display = ('season_name', 'album_count', 'created', 'modified')
+    list_display = ('season_name', 'album_count', 'photo_count', 'created', 'modified')
     actions = [handle_season]
 
 

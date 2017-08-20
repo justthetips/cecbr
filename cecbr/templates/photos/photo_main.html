@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}CECBR Photos{% endblock %}
+
+{% block content %}
+    <div class="jumbotron">
+        <div class="container">
+            <img src="https://www.cecbr.com/images/home/summer-camps-equinunk-blueridge-splash-logo.png"/>
+            <p>Do you love CECBR but hate looking through all the photos.  You are in luck</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="row">
+            <div class="col-md-4">
+                <H2>Albums</H2>
+                <p>Look through the albums yourself</p>
+                <p><a class="btn btn-default" href="#" role="button">View details &raquo;</a></p>
+            </div>
+            <div class="col-md-4">
+                <H2>My People</H2>
+                <p>Look at the photos we found your kids in</p>
+                <p><a class="btn btn-default" href="#" role="button">View details &raquo;</a></p>
+            </div>
+            <div class="col-md-4">
+                <H2>My Favorites</H2>
+                <p>Look at the full size version of all the photos you marked as favorite</p>
+                <p><a class="btn btn-default" href="#" role="button">View details &raquo;</a></p>
+            </div>
+        </div>
+    </div>
+{% endblock content %}
+
