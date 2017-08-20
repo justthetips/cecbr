@@ -1,16 +1,17 @@
-from django.conf import settings
-from django.db import models
-from django.contrib.postgres.fields import JSONField
-
-from cecbr.core.models import TimeStampedModel
-
 import base64
 import os
 import uuid
+
 from cryptography.fernet import Fernet
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+from django.conf import settings
+from django.contrib.postgres.fields import JSONField
+from django.db import models
+
+from cecbr.core.models import TimeStampedModel
+
 
 def training_directory_path(instance, filename):
     return 'person_{0}/{1}'.format(instance.person.name, filename)
@@ -24,7 +25,7 @@ class CECBRProfile(TimeStampedModel):
     last_album_view = models.DateTimeField(blank=True, null=True)
     _cecbr_salt = models.BinaryField(blank=True)
 
-    def handle_pwd(self, raw_password):
+    def handle_pwd(self, raw_password: str) -> None:
         b_password = str.encode(raw_password)
         u_password = str.encode(settings.SECRET_KEY)
         salt = os.urandom(16)
@@ -36,14 +37,13 @@ class CECBRProfile(TimeStampedModel):
         self._cecbr_salt = salt
         self._cecbr_pwd_set = True
 
-    def get_pwd(self):
+    def get_pwd(self) -> str:
         u_password = str.encode(settings.SECRET_KEY)
         salt = self._cecbr_salt
         kdf = PBKDF2HMAC(algorithm=hashes.SHA256(), length=32, salt=salt, iterations=100000, backend=default_backend())
         key = base64.urlsafe_b64encode(kdf.derive(u_password))
         f = Fernet(key)
         return f.decrypt(self.cecbr_password)
-
 
     def save(self, *args, **kwargs):
         if not self._cecbr_pwd_set:
@@ -59,7 +59,7 @@ class CECBRProfile(TimeStampedModel):
 
 
 class Season(TimeStampedModel):
-    season_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False )
+    season_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     season_name = models.CharField(max_length=32, blank=False, null=False)
 
     def __str__(self):
@@ -71,9 +71,10 @@ class Season(TimeStampedModel):
     album_count = property(_get_album_count)
 
     class Meta:
-        verbose_name='Season'
-        verbose_name_plural='Seasons'
+        verbose_name = 'Season'
+        verbose_name_plural = 'Seasons'
         ordering = ['-season_name']
+
 
 class Album(TimeStampedModel):
     season = models.ForeignKey(Season)
@@ -121,6 +122,7 @@ class Photo(TimeStampedModel):
         verbose_name = 'Photo'
         verbose_name_plural = 'Photos'
 
+
 class Group(TimeStampedModel):
     user = models.ForeignKey(CECBRProfile)
     group_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -141,15 +143,8 @@ class Person(TimeStampedModel):
     def __str__(self) -> str:
         return self.person_name
 
+
 class TrainingPhoto(TimeStampedModel):
     person = models.ForeignKey(Person)
     photo = models.ImageField(upload_to=training_directory_path, null=False, blank=False)
     face_json = JSONField(blank=False)
-
-
-
-
-
-
-
-

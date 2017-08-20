@@ -79,7 +79,6 @@ class Page(object):
         return self.retrieve_page(url).page_source
 
 
-@attr.s
 class CampMinderPhotoFinder(metaclass=ABCMeta):
     array_search_string = attr.ib(default='AlbumArray', validator=attr.validators.instance_of(str))
     front_clean_chars = attr.ib(default=1, validator=attr.validators.instance_of(int))
@@ -93,7 +92,7 @@ class CampMinderPhotoFinder(metaclass=ABCMeta):
     def prettify(self, string: str) -> str:
         pass
 
-    def parse(self) -> dict:
+    def parse(self) -> Dict[str, dict]:
 
         if not self._logon_page.logged_in:
             self._logon_page.logon()
