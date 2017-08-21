@@ -5,7 +5,7 @@ from django.contrib import admin
 from django.views.generic import TemplateView
 from django.views import defaults as default_views
 
-from .views import season_view
+from .views import season_view, AlbumDetailView
 
 urlpatterns = [
     url(
@@ -17,5 +17,9 @@ urlpatterns = [
         regex=r'^season/$',
         view=season_view,
         name='season_index'
+    ),
+    url(regex=r'^album/(?P<pk>[-\w]+)/$',
+        view=AlbumDetailView.as_view(),
+        name="album_detail"
     ),
 ]

@@ -16,8 +16,8 @@
             <div class="row">
                 {% for na in new_albums %}
                     <div class="card">
-                        <a href="#">
-                            <img src="{{ na.cover_url }}" alt="{{ na.name }}" class="img-responsive">
+                        <a href="{% url 'photos:album_index' na.album_id %}">
+                            <img src="{{ na.cover_url }}" alt="{{ na.name }}" class="img-responsive" data-src="holder.js/200x100/thumb">
                         </a>
                         <p>{{ na.name }} - {{ na.count }} Pictures</p>
                     </div>

@@ -72,6 +72,14 @@ cecbr/media/
 
 
 
+Error
+ImportError: Failed to import test module: base
+Traceback (most recent call last):
+  File "/usr/lib/python3.5/unittest/loader.py", line 153, in loadTestsFromName
+    module = __import__(module_name)
+ImportError: No module named 'cecbr.templates.base'
+
+
 staticfiles/
 
 .cache/

@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% load static i18n %}
+{% block title %}CECBR Albums{% endblock %}
+
+{% block content %}
+
+    <div class="album text-muted">
+        <div class="container">
+            <div class="row">
+                {% for photo in photos %}
+                    <div class="card">
+                        <a href="#">
+                            <img src="{{ photo.small_url }}" alt="{{ photo.id }}" class="img-responsive">
+                        </a>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+{% endblock content %}

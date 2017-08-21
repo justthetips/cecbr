@@ -156,6 +156,15 @@ class Album(TimeStampedModel):
         self.save()
 
 
+    @staticmethod
+    def process_albums(self, profile:CECBRProfile, albums: QuerySet) -> None:
+        logger.info("Processing {} albums".format(albums.count()))
+
+        logon_page = parsers.get_logged_on_page(profile.cecbr_uname, profile.get_pwd())
+        for album in albums:
+            album.process_album(profile,logon_page)
+
+
 
     class Meta:
         verbose_name = 'Album'

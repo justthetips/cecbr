@@ -9,7 +9,7 @@ from django.contrib.auth.decorators import login_required
 
 import django.utils.timezone
 
-from .models import Season, Album
+from .models import Season, Album, Photo
 
 @login_required()
 def season_view(request: HttpRequest) -> HttpResponse:
@@ -32,5 +32,16 @@ def season_view(request: HttpRequest) -> HttpResponse:
     cp.last_album_view = django.utils.timezone.now()
     context = {'new_albums': new_albums, 'old_albums': old_albums, 'season': s}
     return render(request, 'photos/season_index.html', context)
+
+
+class AlbumDetailView(LoginRequiredMixin, DetailView):
+    model = Album
+
+
+    def get_context_data(self, **kwargs):
+        context = super(AlbumDetailView, self).get_context_data(**kwargs)
+        context['album'] = self.object
+        context['photos'] = Photo.objects.filter(album=self.object)
+        return context
 
 

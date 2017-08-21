@@ -12,8 +12,11 @@ def handle_season(modeladmin, request, queryset):
 
 def handle_album(modeladmin, request, queryset):
     cp = request.user.cecbrprofile
-    for album in queryset:
-        album.process_album(cp)
+    if queryset.count() > 1:
+        Album.process_albums(queryset.first(),cp,queryset)
+    else:
+        for album in queryset:
+            album.process_album(cp)
 
 
 @admin.register(CECBRProfile)
