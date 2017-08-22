@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% load static i18n %}
+{% block title %}{{ photo.album.album_name }}{% endblock %}
+
+{% block content %}
+
+
+            <img src="{{ photo.large_url }}" class="img-responsive"/>
+
+
+
+{% endblock content %}

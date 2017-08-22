@@ -2,6 +2,9 @@ from django.core.urlresolvers import reverse
 from django.views.generic import DetailView, ListView, RedirectView, UpdateView
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render, get_object_or_404
+from django.core.paginator import Paginator
+from django.core.paginator import EmptyPage
+from django.core.paginator import PageNotAnInteger
 
 
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -44,4 +47,7 @@ class AlbumDetailView(LoginRequiredMixin, DetailView):
         context['photos'] = Photo.objects.filter(album=self.object)
         return context
 
+
+class PhotoDetailView(LoginRequiredMixin, DetailView):
+    model = Photo
 

@@ -1,15 +1,36 @@
 {% extends "base.html" %}
 {% load static i18n %}
-{% block title %}CECBR Albums{% endblock %}
+{% block title %}{{ album.name }}{% endblock %}
 
 {% block content %}
+
+
+    <div class="jumbotron">
+        <div class="container">
+            <p><img src="{{ album.cover_url }}" alt="{{ album.album_name }}" class="img-responsive"/></p>
+            <table>
+                <tr>
+                    <th>Count</th>
+                    <td>{{ album.count }}</td>
+                </tr>
+                <tr>
+                    <th>Date</th>
+                    <td>{{ album.album_date|date }}</td>
+                </tr>
+                <tr>
+                    <th>Photo Count</th>
+                    <td>{{ album.count }}</td>
+                </tr>
+            </table>
+        </div>
+    </div>
 
     <div class="album text-muted">
         <div class="container">
             <div class="row">
                 {% for photo in photos %}
                     <div class="card">
-                        <a href="#">
+                        <a href="{% url 'photos:photo_detail' photo.photo_id %}">
                             <img src="{{ photo.small_url }}" alt="{{ photo.id }}" class="img-responsive">
                         </a>
                     </div>

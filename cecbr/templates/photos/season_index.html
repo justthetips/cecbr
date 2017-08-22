@@ -16,7 +16,7 @@
             <div class="row">
                 {% for na in new_albums %}
                     <div class="card">
-                        <a href="{% url 'photos:album_index' na.album_id %}">
+                        <a href="{% url 'photos:album_detail' na.album_id %}">
                             <img src="{{ na.cover_url }}" alt="{{ na.name }}" class="img-responsive" data-src="holder.js/200x100/thumb">
                         </a>
                         <p>{{ na.name }} - {{ na.count }} Pictures</p>
@@ -33,7 +33,7 @@
             <div class="row">
                 {% for oa in old_albums %}
                    <div class="card">
-                        <a href="#">
+                        <a href="{% url 'photos:album_detail' oa.album_id %}">
                             <img src="{{ oa.cover_url }}" alt="{{ oa.name }}" class="img-responsive">
                         </a>
                         <p>{{ oa.name }} - {{ oa.count }} Pictures</p>
