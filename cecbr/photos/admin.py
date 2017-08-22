@@ -53,5 +53,5 @@ class PhotoAdmin(admin.ModelAdmin):
     model = Photo
     list_display = (
     'photo_id', 'album', 'analyzed', 'identified', 'analyzed_date', 'identified_date', 'created', 'modified')
-    list_filter = ('album',)
+    list_filter = ('album__season',)
     search_fields = ('photo_id', 'album')

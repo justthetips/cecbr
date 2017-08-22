@@ -81,6 +81,7 @@ class Season(TimeStampedModel):
         albums = Album.objects.filter(season=self)
         for album in albums:
             photo_count += album.count
+        return photo_count
 
     album_count = property(_get_album_count)
     photo_count = property(_get_photo_count)

@@ -49,7 +49,8 @@ THIRD_PARTY_APPS = [
     'allauth',  # registration
     'allauth.account',  # registration
     'allauth.socialaccount',  # registration
-    'taggit' #tagging
+    'taggit', #tagging
+    'django_celery_beat',
 ]
 
 # Apps specific for this project go here.

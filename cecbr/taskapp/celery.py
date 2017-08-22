@@ -3,6 +3,9 @@ import os
 from celery import Celery
 from django.apps import apps, AppConfig
 from django.conf import settings
+from celery.utils.log import get_task_logger
+from celery.schedules import crontab
+
 
 
 if not settings.configured:
@@ -11,6 +14,8 @@ if not settings.configured:
 
 
 app = Celery('cecbr')
+logger = get_task_logger(__name__)
+
 
 
 class CeleryConfig(AppConfig):
@@ -40,9 +45,34 @@ class CeleryConfig(AppConfig):
             raven_register_logger_signal(raven_client)
             raven_register_signal(raven_client)
 
-        
+
 
 
 @app.task(bind=True)
 def debug_task(self):
     print('Request: {0!r}'.format(self.request))  # pragma: no cover
+
+@app.task(bind=True)
+def update_albums(self):
+    from cecbr.photos.models import CECBRProfile, Season
+    seasons = Season.objects.all()
+    profile = CECBRProfile.objects.get(user_id=1)
+    for season in seasons:
+        logger.info("Updating albums in {}".format(season.season_name))
+        season.process_season(profile=profile)
+
+@app.task(bind=True)
+def process_albums(self):
+    from cecbr.photos.models import CECBRProfile, Album
+    from cecbr.photos.utils.parsers import get_logged_on_page
+    albums = Album.objects.filter(processed=False)
+    profile = CECBRProfile.objects.get(user_id=1)
+    page = get_logged_on_page(profile.cecbr_uname, profile.get_pwd())
+    for album in albums:
+        logger.info("Processing Album {}".format(album.album_name))
+        album.process_album(profile, page)
+    page.close()
+
+
+
+

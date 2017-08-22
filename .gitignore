@@ -85,3 +85,4 @@ staticfiles/
 .cache/
 
 phantomjs.exe
+celerybeat.pid
