@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% load static i18n %}
+{% block title %}Members{% endblock %}
+
+{% block content %}
+<div class="container">
+  <h2>People</h2>
+
+  <div class="list-group">
+    {% for group in group_list %}
+        <h4 class="list-group-item-heading">{{ person.person_name }}</h4>
+    {% endfor %}
+  </div>
+
+    <a href="{% url 'photos:create_person' %}">Create a Person</a>
+    <a href="{% url 'photos:groups' %}">View Groups</a>
+
+</div>
+{% endblock content %}

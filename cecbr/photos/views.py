@@ -1,5 +1,5 @@
 from django.core.urlresolvers import reverse
-from django.views.generic import DetailView, ListView, RedirectView, UpdateView
+from django.views.generic import DetailView, ListView, RedirectView, UpdateView, CreateView
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render, get_object_or_404
 from django.core.paginator import Paginator
@@ -12,7 +12,8 @@ from django.contrib.auth.decorators import login_required
 
 import django.utils.timezone
 
-from .models import Season, Album, Photo
+from .models import Season, Album, Photo, Group, Person, CECBRProfile
+from .forms import GroupForm, PersonForm
 
 @login_required()
 def season_view(request: HttpRequest) -> HttpResponse:
@@ -50,4 +51,30 @@ class AlbumDetailView(LoginRequiredMixin, DetailView):
 
 class PhotoDetailView(LoginRequiredMixin, DetailView):
     model = Photo
+
+class CreateGroupView(LoginRequiredMixin, CreateView):
+    model = Group
+    form_class = GroupForm
+
+    def form_valid(self, form):
+        obj = form.save(commit=False)
+        obj.user = CECBRProfile.objects.get(user=self.request.user)
+        return super(CreateGroupView, self).form_valid(form)
+
+class CreatePersonView(LoginRequiredMixin, CreateView):
+    model = Person
+    form_class = PersonForm
+    template_name = 'photos/people_form.html'
+
+    def get_form_kwargs(self):
+        kwargs = super(CreatePersonView, self).get_form_kwargs()
+        kwargs['instance'] = CECBRProfile.objects.get(user=self.request.user)
+        return kwargs
+
+class GroupListView(LoginRequiredMixin, ListView):
+    model = Group
+
+class PersonListView(LoginRequiredMixin, ListView):
+    model = Person
+    template_name = 'photos/people_list.html'
 

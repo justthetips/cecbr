@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}Add a Group{% endblock %}
+
+{% block content %}
+  <h1>{{ request.user.username }}</h1>
+    <p>Add a group</p>
+  <form class="form-horizontal" method="post" action="{% url 'photos:create_group' %}">
+    {% csrf_token %}
+    {{ form|crispy }}
+    <div class="control-group">
+      <div class="controls">
+        <button type="submit" class="btn">Create</button>
+      </div>
+    </div>
+  </form>
+{% endblock %}

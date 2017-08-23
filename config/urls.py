@@ -18,6 +18,7 @@ urlpatterns = [
 
     # Your stuff: custom urls includes go here
     url(r'^photos/', include('cecbr.photos.urls', namespace='photos')),
+    url(r'^analysis/', include('cecbr.photoanalysis.urls', namespace='analysis')),
 
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

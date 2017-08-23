@@ -55,3 +55,9 @@ class PhotoAdmin(admin.ModelAdmin):
     'photo_id', 'album', 'analyzed', 'identified', 'analyzed_date', 'identified_date', 'created', 'modified')
     list_filter = ('album__season',)
     search_fields = ('photo_id', 'album')
+
+@admin.register(Group)
+class GroupAdmin(admin.ModelAdmin):
+    model = Group
+    list_display = ('group_id', 'group_name','trained','created','modified')
+    list_filter = ('user',)
