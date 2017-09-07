@@ -55,6 +55,7 @@ class PhotoDetailView(LoginRequiredMixin, DetailView):
 class CreateGroupView(LoginRequiredMixin, CreateView):
     model = Group
     form_class = GroupForm
+    template_name = "photos/group_form.html"
 
     def form_valid(self, form):
         obj = form.save(commit=False)
@@ -77,4 +78,9 @@ class GroupListView(LoginRequiredMixin, ListView):
 class PersonListView(LoginRequiredMixin, ListView):
     model = Person
     template_name = 'photos/people_list.html'
+
+class GroupDetailView(LoginRequiredMixin, DetailView):
+    model = Group
+    template_name = "photos/group_detail.html"
+
 

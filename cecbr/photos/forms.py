@@ -13,19 +13,17 @@ class GroupForm(forms.ModelForm):
 class PersonForm(forms.ModelForm):
     class Meta:
         model = Person
-        fields = ['groups','person_name','photos']
+        fields = ['person_name','photos']
 
         files = MultiMediaField(min_num=1,media_type='image')
 
 
-    def __init__(self, *args, **kwargs):
-        super(PersonForm,self).__init__(*args, **kwargs)
-        user = kwargs.pop('instance',None)
-        qs = Group.objects.filter(user=user)
-        self.fields['groups'].queryset = qs
-
     def save(self, commit=True):
-        instance = super(PersonForm, self).save(commit)
+        instance = super(PersonForm, self).save(False)
+        group_id = self.request.POST['groupid']
+        group = Group.objects.get(pk=group_id)
+        instance.group = group
+        instance.save()
         for photo in self.cleaned_data['files']:
             tp = TrainingPhoto(person=instance, photo=photo).save()
 

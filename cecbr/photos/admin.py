@@ -18,6 +18,11 @@ def handle_album(modeladmin, request, queryset):
         for album in queryset:
             album.process_album(cp)
 
+def handle_photo(modeladmin, request, queryset):
+    cp = request.user.cecbrprofile
+    for photo in queryset:
+        photo.analyze_photo()
+
 
 @admin.register(CECBRProfile)
 class CECBRProfileAdmin(admin.ModelAdmin):
@@ -55,6 +60,7 @@ class PhotoAdmin(admin.ModelAdmin):
     'photo_id', 'album', 'analyzed', 'identified', 'analyzed_date', 'identified_date', 'created', 'modified')
     list_filter = ('album__season',)
     search_fields = ('photo_id', 'album')
+    actions = [handle_photo]
 
 @admin.register(Group)
 class GroupAdmin(admin.ModelAdmin):

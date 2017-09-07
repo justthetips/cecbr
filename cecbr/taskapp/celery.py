@@ -73,6 +73,15 @@ def process_albums(self):
         album.process_album(profile, page)
     page.close()
 
+@app.task(bind=True)
+def analyze_photos(self):
+    from cecbr.photos.models import Photo
+    photos = Photo.objects.filter(analyzed=False)
+    for photo in photos:
+        logger.info("Processing Photo {}".format(photo.id))
+        photo.analyze_photo()
+
+
 
 
 

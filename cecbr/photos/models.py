@@ -2,6 +2,7 @@ import base64
 import os
 import uuid
 import logging
+import json
 import django.utils.timezone
 from django.db.models.query import QuerySet
 
@@ -16,6 +17,7 @@ from django.db import models
 from cecbr.core.models import TimeStampedModel
 from cecbr.photos.utils import parsers, cecbrsite
 from cecbr.photos.utils.cecbrsite import Page
+from cecbr.photoanalysis.util import find_face, face_encodings
 
 logger = logging.getLogger(__name__)
 
@@ -187,6 +189,17 @@ class Photo(TimeStampedModel):
 
     def __str__(self) -> str:
         return "Photo {} from Album {}".format(self.photo_id, self.album.album_name)
+
+
+    def analyze_photo(self):
+        locations = json.loads(find_face(self.large_url))
+        encodings = json.loads(face_encodings(self.large_url))
+        d = {'locations':locations,'encodings':encodings}
+        self.face_json = json.dumps(d)
+        self.analyzed = True
+        self.analyzed_date = django.utils.timezone.now()
+        self.save()
+
 
     class Meta:
         ordering = ['album', 'photo_id']

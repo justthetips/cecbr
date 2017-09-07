@@ -8,12 +8,14 @@
 
   <div class="list-group">
     {% for group in group_list %}
-        <h4 class="list-group-item-heading">{{ group.group_name }}</h4>
+        <a href="{% url 'photos:group_detail' group.pk %}">
+            <h4 class="list-group-item-heading">{{ group.group_name }}</h4>
+        </a>
     {% endfor %}
   </div>
 
-    <a href="{% url 'photos:create_group' %}">Create a Group</a>
-    <a href="{% url 'photos:people' %}">View People</a>
+    <a href="{% url 'photos:create_group' %}?">Create a Group</a>
+    <a href="{% url 'photos:people' %}">Create a Person</a>
 
 </div>
 {% endblock content %}

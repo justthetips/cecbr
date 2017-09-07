@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% load static i18n %}
+{% block title %}Group {{ object.group_name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+  <h2>{{ object.group_name }}</h2>
+
+  <div class="list-group">
+    {% for photo in object__person %}
+        <img src="{{ photo.photo.url }}"/>
+    {% endfor %}
+  </div>
+
+    <a href="{% url 'photos:create_person' %}?group_id={{ group.pk|urlencode }}">Add Person</a>
+
+</div>
+{% endblock content %}
