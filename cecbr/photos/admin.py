@@ -23,12 +23,20 @@ def handle_photo(modeladmin, request, queryset):
     for photo in queryset:
         photo.analyze_photo()
 
+def build_favorites(modeladmin, request, queryset):
+    for cp in queryset:
+        seasons = Season.objects.all()
+        for season in seasons:
+            cp.get_favorites(season.season_name)
+
 
 @admin.register(CECBRProfile)
 class CECBRProfileAdmin(admin.ModelAdmin):
     model = CECBRProfile
 
     list_display = ('get_user_name', 'created', 'modified', 'last_album_view')
+
+    actions = [build_favorites]
 
     def get_user_name(self, obj):
         return obj.user.name

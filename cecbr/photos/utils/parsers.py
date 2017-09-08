@@ -4,7 +4,7 @@ from typing import List
 
 import attr
 
-from .cecbrsite import Page, IndexAlbumParser, unquote, FavoriteAlbumParser
+from .cecbrsite import Page, IndexAlbumParser, unquote, FavoriteAlbumParser, ALBUM_URL
 
 ALBUM_TOKEN = "\\\"SessionIDList\\\":[]}}"
 
@@ -52,6 +52,19 @@ def get_season_index(page: Page, season_url: str) -> List[ParsedSeason]:
 
 def get_album(page: Page, album_url: str) -> List[ParsedAlbum]:
     parser = FavoriteAlbumParser(page, album_url, array_search_string=ALBUM_TOKEN)
+    dicts = parser.parse()
+    results = []
+    for k, d in dicts.items():
+        pa = ParsedAlbum(id=unquote(k), season=unquote(d['SeasonID']),
+                         small_url=unquote(d['ThumbnailUrl']), large_url=unquote(d['ZoominUrl']))
+        results.append(pa)
+    return results
+
+
+def get_favorites(page: Page, season: str) -> List[ParsedAlbum]:
+    favorite_tail = "seasonID={}&action=f".format(season)
+    favorite_url = '?'.join([ALBUM_URL, favorite_tail])
+    parser = FavoriteAlbumParser(page, favorite_url)
     dicts = parser.parse()
     results = []
     for k, d in dicts.items():

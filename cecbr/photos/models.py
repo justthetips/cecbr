@@ -1,29 +1,42 @@
 import base64
+import json
+import logging
 import os
 import uuid
-import logging
-import json
-import django.utils.timezone
-from django.db.models.query import QuerySet
 
+import django.utils.timezone
+import requests
+
+from urllib.parse import urlparse
 from cryptography.fernet import Fernet
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from django.conf import settings
 from django.contrib.postgres.fields import JSONField
+from django.core.files.base import ContentFile
 from django.db import models
+from django.db.models.query import QuerySet
 
 from cecbr.core.models import TimeStampedModel
+from cecbr.photoanalysis.util import find_face, face_encodings
 from cecbr.photos.utils import parsers, cecbrsite
 from cecbr.photos.utils.cecbrsite import Page
-from cecbr.photoanalysis.util import find_face, face_encodings
 
 logger = logging.getLogger(__name__)
 
 
 def training_directory_path(instance, filename):
     return 'person_{0}/{1}'.format(instance.person.name, filename)
+
+def photo_directory_path_s(instance, filename):
+    return 'user_{0}/season_{1}/album_{2}/small/{3}'.format(instance.user.id, instance.photo.album.season.season_name,
+                                                            instance.photo.album.album_id, filename)
+
+
+def photo_directory_path_l(instance, filename):
+    return 'user_{0}/season_{1}/album_{2}/full/{3}'.format(instance.user.id, instance.photo.album.season.season_name,
+                                                           instance.photo.album.album_id, filename)
 
 
 class CECBRProfile(TimeStampedModel):
@@ -59,6 +72,15 @@ class CECBRProfile(TimeStampedModel):
         if not self._cecbr_pwd_set:
             self.handle_pwd(self.cecbr_password)
         super(CECBRProfile, self).save(*args, **kwargs)
+
+    def get_favorites(self, season):
+        logger.info("Loading favorites for {} in season {}".format(self.user.name, season))
+        logon_page = parsers.get_logged_on_page(self.cecbr_uname, self.get_pwd())
+        favorite_photos = parsers.get_favorites(logon_page, season)
+        for favorite_photo in favorite_photos:
+            photo = Photo.objects.get(photo_id=favorite_photo.id)
+            photo.favorite_photo(self)
+
 
     def __str__(self):
         return self.user.name
@@ -113,7 +135,8 @@ class Season(TimeStampedModel):
                     old_album.save()
             else:
                 logger.info("Adding new album {}".format(album.name))
-                new_album = Album(season=self, album_id=album.id, album_name=album.name, cover_url=album.cover_url, count=album.count,
+                new_album = Album(season=self, album_id=album.id, album_name=album.name, cover_url=album.cover_url,
+                                  count=album.count,
                                   album_date=album.al_date)
                 new_album.save()
 
@@ -144,11 +167,11 @@ class Album(TimeStampedModel):
         full_url = '?'.join([base_url, '&'.join([season_param, album_param])])
         return full_url
 
-    def process_album(self, profile:CECBRProfile, logon_page:Page = None) -> None:
+    def process_album(self, profile: CECBRProfile, logon_page: Page = None) -> None:
         logger.info("Processing Album {} it has {} photos".format(self.album_name, self.count))
         if logon_page is None:
             logon_page = parsers.get_logged_on_page(profile.cecbr_uname, profile.get_pwd())
-        photos = parsers.get_album(logon_page,self.album_url(cecbrsite.ALBUM_URL))
+        photos = parsers.get_album(logon_page, self.album_url(cecbrsite.ALBUM_URL))
         for photo in photos:
             if not Photo.objects.filter(photo_id=photo.id).exists():
                 logger.debug('Photo {} is new, adding it'.format(photo.id))
@@ -158,16 +181,13 @@ class Album(TimeStampedModel):
         self.processed_date = django.utils.timezone.now()
         self.save()
 
-
     @staticmethod
-    def process_albums(self, profile:CECBRProfile, albums: QuerySet) -> None:
+    def process_albums(self, profile: CECBRProfile, albums: QuerySet) -> None:
         logger.info("Processing {} albums".format(albums.count()))
 
         logon_page = parsers.get_logged_on_page(profile.cecbr_uname, profile.get_pwd())
         for album in albums:
-            album.process_album(profile,logon_page)
-
-
+            album.process_album(profile, logon_page)
 
     class Meta:
         verbose_name = 'Album'
@@ -190,16 +210,31 @@ class Photo(TimeStampedModel):
     def __str__(self) -> str:
         return "Photo {} from Album {}".format(self.photo_id, self.album.album_name)
 
-
     def analyze_photo(self):
         locations = json.loads(find_face(self.large_url))
         encodings = json.loads(face_encodings(self.large_url))
-        d = {'locations':locations,'encodings':encodings}
+        d = {'locations': locations, 'encodings': encodings}
         self.face_json = json.dumps(d)
         self.analyzed = True
         self.analyzed_date = django.utils.timezone.now()
         self.save()
 
+    def vault_photo(self,user: CECBRProfile):
+        vp = VaultedPhoto(user=user, photo=self)
+        small_name = urlparse(self.small_url).path.split('/')[-1]
+        large_name = urlparse(self.large_url).path.split('/')[-1]
+        small_response = requests.get(self.small_url)
+        large_response = requests.get(self.large_url)
+        vp.small_photo.save(name=small_name,content=ContentFile(small_response.content), save=True)
+        vp.large_photo.save(name=large_name, content=ContentFile(large_response.content), save=True)
+        vp.save()
+        return vp
+
+    def favorite_photo(self,user: CECBRProfile):
+        vp = self.vault_photo(user)
+        vp.is_favorite = True
+        vp.save()
+        return vp
 
     class Meta:
         ordering = ['album', 'photo_id']
@@ -233,3 +268,17 @@ class TrainingPhoto(TimeStampedModel):
     person = models.ForeignKey(Person)
     photo = models.ImageField(upload_to=training_directory_path, null=False, blank=False)
     face_json = JSONField(blank=False, null=True)
+
+class VaultedPhoto(TimeStampedModel):
+    user = models.ForeignKey(CECBRProfile)
+    photo = models.ForeignKey(Photo)
+    uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    small_photo = models.ImageField(upload_to=photo_directory_path_s, null=True, blank=True,
+                                    verbose_name=u'Small Image')
+    large_photo = models.ImageField(upload_to=photo_directory_path_l, null=True, blank=True,
+                                    verbose_name=u'large Image')
+    is_favorite = models.BooleanField(default=False)
+
+    def __str__(self):
+        return 'Vault-{}'.format(self.photo.__str__())
+
