@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% load static i18n %}
+{% block title %}Favorite Photo{% endblock %}
+
+{% block content %}
+
+
+    <canvas id="photocanvas" width="{{ vp.large_photo.width }}" height="{{ vp.large_photo.height }}">
+        Your browser does not support the HTML5 canvas tag.
+    </canvas>
+
+    <button onclick="draw_r()">Show Faces</button>
+    <button onclick="clr_r()">Clear Faces</button>
+
+
+<script>
+    window.onload = function() {
+        var c = document.getElementById("photocanvas");
+        var ctx = c.getContext("2d");
+        var img = new Image;
+        img.onload = function(){
+            ctx.drawImage(img,0,0); // Or at whatever offset you like
+        };
+        img.src = "{{ vp.large_photo.url }}";
+    }
+
+    draw_r = function() {
+        var c = document.getElementById("photocanvas");
+        var ctx = c.getContext("2d");
+        {% for face, rec in rects.items %}
+            ctx.beginPath();
+            ctx.rect({{ rec.0 }}, {{ rec.1 }}, {{ rec.2 }}, {{ rec.3 }});
+            ctx.lineWidth = 7;
+            ctx.strokeStyle = 'black';
+            ctx.stroke();
+        {% endfor %}
+    }
+
+    clr_r = function() {
+        var c = document.getElementById("photocanvas");
+        var ctx = c.getContext("2d");
+        ctx.clearRect(0, 0, c.width, c.height)
+        var img = new Image;
+        img.onload = function(){
+            ctx.drawImage(img,0,0); // Or at whatever offset you like
+        };
+        img.src = "{{ vp.large_photo.url }}";
+
+    }
+
+</script>
+
+
+{% endblock content %}

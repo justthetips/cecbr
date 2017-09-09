@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% load static i18n %}
+{% block title %}{{ season_name }} Favorites{% endblock %}
+
+{% block content %}
+
+
+    <div class="album text-muted">
+        <div class="container">
+            <div class="row">
+                {% for photo in photos %}
+                    <div class="card">
+                        <a href="{% url 'photos:vaulted_photo' photo.uuid %}">
+                            <img src="{{ photo.small_photo.url }}" alt="{{ photo.id }}" class="img-responsive">
+                        </a>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+{% endblock content %}

@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% load static i18n %}
+{% block title %}Favorites{% endblock %}
+
+{% block content %}
+
+    <p>You have favorites in the following seasons</p>
+
+    <div class="container">
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <th>Season</th>
+                    <th>&nbsp;</th>
+                    <th>&nbsp;</th>
+                </thead>
+                <tbody>
+                    {% for s in available_seasons %}
+                        <tr>
+                            <td>{{ s }}</td>
+                            <td><a href="{% url 'photos:vault_view' s %}">View</a></td>
+                            <td><a href="{% url 'photos:vault_download' s %}">Download</a> </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+
+{% endblock content %}

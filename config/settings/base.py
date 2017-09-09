@@ -61,8 +61,6 @@ LOCAL_APPS = [
     'cecbr.core.apps.CoreConfig',
     'cecbr.photoanalysis.apps.PhotoAnalysisConfig',
     'cecbr.photos.apps.PhotosConfig',
-    'cecbr.photovault.apps.PhotoVaultConfig',
-
 
 ]
 
