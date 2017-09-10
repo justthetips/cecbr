@@ -1,13 +1,13 @@
 from django.db import models
 
-import cecbr.photos.models as cem
+from cecbr.photos.models import Group
 from cecbr.core.models import TimeStampedModel
 
 
 class AnalysisGroup(TimeStampedModel):
 
     id = models.AutoField(primary_key=True)
-    group = models.ForeignKey(cem.Group, on_delete=models.CASCADE)
+    group = models.ForeignKey(Group, on_delete=models.CASCADE)
     trainer = models.FileField(blank=True)
     trained = models.BooleanField(default=False)
     trained_date = models.DateTimeField(blank=True, null=True)

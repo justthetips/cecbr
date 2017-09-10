@@ -141,6 +141,10 @@ def vaulted_photo(request, photoid):
     rects={}
     for i, v in r.items():
         top, right, bottom, left = v
-        rects[i] = [top,right,bottom-top,right-left]
+        y = top
+        x = left
+        width = right - left
+        height = bottom - top
+        rects[i] = [x,y,width,height]
     context = {'vp': vp, 'p': p, 'rects': rects}
     return render(request, 'photos/favorite_photo.html', context)

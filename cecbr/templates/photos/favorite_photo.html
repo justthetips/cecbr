@@ -28,10 +28,8 @@
         var c = document.getElementById("photocanvas");
         var ctx = c.getContext("2d");
         {% for face, rec in rects.items %}
-            ctx.beginPath();
             ctx.rect({{ rec.0 }}, {{ rec.1 }}, {{ rec.2 }}, {{ rec.3 }});
-            ctx.lineWidth = 7;
-            ctx.strokeStyle = 'black';
+            ctx.lineWidth = 2;
             ctx.stroke();
         {% endfor %}
     }
